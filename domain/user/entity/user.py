@@ -40,15 +40,8 @@ class User(AgregateRoot):
         return user
 
 
-    @classmethod
-    def delete(
-        cls,
-        user_id: UUID
-    ) -> "User":
-        user = User(id=user_id)
-        
-        user.record_event(
-            UserDeleted(user_id=user.id)
+    def mark_as_deleted(self):
+        self.deleted = True
+        self.record_event(
+            UserDeleted(user_id=self.id)
         )
-        
-        return user

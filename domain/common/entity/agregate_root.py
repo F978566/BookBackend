@@ -1,8 +1,8 @@
 from abc import ABC
 from dataclasses import dataclass, field
 
-from event.event import Event
-from entity import Entity
+from ..event.event import Event
+from .entity import Entity
 
 
 @dataclass
