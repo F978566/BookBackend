@@ -25,8 +25,8 @@ class UserRepoImpl(UserRepo):
             )
             self._session.add(user)
 
-            await self._session.commit()
-            await self._session.refresh(user)
+            # await self._session.commit()
+            # await self._session.refresh(user)
 
             return self._mapper.domain_to_dto(new_user)
         except:
