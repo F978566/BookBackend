@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from uuid import UUID
-from domain.common.event.event import Event
+
+from src.domain.common.event.event import Event
 
 
 @dataclass(frozen=True)

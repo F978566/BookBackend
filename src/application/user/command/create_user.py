@@ -1,13 +1,14 @@
 from dataclasses import dataclass
-from didiator import EventMediator
+# from didiator import EventMediator
+# from didiator import Mediator
 
-from application.common.interfaces.uow import UnitOfWork
-from application.user.dto.user import UserDto
-from application.user.interfaces.user_repo import UserRepo
-from application.common.interfaces.mapper import Mapper
-from domain.user.entity.user import User
-from domain.user.value_object.user_role_enum import UserRoleEnum
-from domain.user.value_object.user_role import UserRole
+from src.application.common.interfaces.uow import UnitOfWork
+from src.application.user.dto.user import UserDto
+from src.application.user.interfaces.user_repo import UserRepo
+from src.application.common.interfaces.mapper import Mapper
+from src.domain.user.entity.user import User
+from src.domain.user.value_object.user_role_enum import UserRoleEnum
+from src.domain.user.value_object.user_role import UserRole
 from ...common.command import Command, CommandHandler
 
 @dataclass
@@ -24,14 +25,14 @@ class CreateUserHandler(CommandHandler[CreateUser, UserDto]):
         user_repo: UserRepo,
         uof: UnitOfWork,
         mapper: Mapper[User, UserDto],
-        mediator: EventMediator,
+        # mediator: Mediator,
     ):
         self.user_repo = user_repo
         self.uof = uof
         self.mapper = mapper
-        self.mediator = mediator
+        # self.mediator = mediator
 
-    async def handle(self, command: CreateUser) -> UserDto:
+    async def __call__(self, command: CreateUser) -> UserDto:
         user = User.create(
             username=command.username,
             password=command.password,
@@ -40,5 +41,5 @@ class CreateUserHandler(CommandHandler[CreateUser, UserDto]):
         )
         await self.user_repo.create_user(user)
         await self.uof.commit()
-        await self.mediator.publish(user.pull_events())
+        # await self.mediator.publish(user.pull_events())
         return self.mapper.domain_to_dto(user)

@@ -2,10 +2,10 @@ from dataclasses import dataclass, field
 from uuid import UUID
 from uuid import uuid4
 
-from domain.common.entity.agregate_root import AgregateRoot
-from domain.user.event.user_created import UserCreated
-from domain.user.event.user_deleted import UserDeleted
-from domain.user.value_object.user_role import UserRole
+from src.domain.common.entity.agregate_root import AgregateRoot
+from src.domain.user.event.user_created import UserCreated
+from src.domain.user.event.user_deleted import UserDeleted
+from src.domain.user.value_object.user_role import UserRole
 
 
 @dataclass
@@ -16,7 +16,7 @@ class User(AgregateRoot):
     email: str = field(default_factory=str)
     user_role: UserRole = field(default_factory=UserRole)
     deleted: bool = field(default=False, kw_only=True)
-    
+
     @classmethod
     def create(
         cls,
@@ -36,7 +36,7 @@ class User(AgregateRoot):
                 user_role=user_role.to_raw()
             )
         )
-        
+
         return user
 
 

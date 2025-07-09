@@ -1,7 +1,7 @@
-from application.common.interfaces.mapper import Mapper
-from application.user.dto import UserDto
-from domain.user.entity.user import User
-from domain.user.value_object.user_role import UserRole
+from src.application.common.interfaces.mapper import Mapper
+from src.application.user.dto import UserDto
+from src.domain.user.entity.user import User
+from src.domain.user.value_object.user_role import UserRole
 
 
 class UserMapper(Mapper[User, UserDto]):
@@ -13,7 +13,7 @@ class UserMapper(Mapper[User, UserDto]):
             email=domain_model.password,
             user_role=domain_model.user_role.to_raw()
         )
-    
+
     def dto_to_domain(self, model: UserDto) -> User:
         return User(
             id=model.id,

@@ -2,11 +2,11 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import delete
 
-from application.common.interfaces.mapper import Mapper
-from application.user.dto import UserDto
-from application.user.interfaces.user_repo import UserRepo
-from domain.user.entity.user import User
-from infrastructure.db.models.user import UserModel
+from src.application.common.interfaces.mapper import Mapper
+from src.application.user.dto import UserDto
+from src.application.user.interfaces.user_repo import UserRepo
+from src.domain.user.entity.user import User
+from src.infrastructure.db.models.user import UserModel
 
 
 class UserRepoImpl(UserRepo):

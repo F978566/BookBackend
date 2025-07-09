@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from application.dto import DTO
-from domain.user.value_object.user_role_enum import UserRoleEnum
+from src.application.dto import DTO
+from src.domain.user.value_object.user_role_enum import UserRoleEnum
 
 
 @dataclass(frozen=True)

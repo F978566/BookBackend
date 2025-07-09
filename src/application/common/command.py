@@ -6,12 +6,12 @@ import didiator
 CRes = TypeVar("CRes")
 
 
-class Command[CRes](didiator.Command[CRes], ABC):
+class Command[CRes](didiator.Request[CRes], ABC):
     pass
 
 
 C = TypeVar("C", bound=Command[Any])
 
 
-class CommandHandler(didiator.CommandHandler[C, CRes], ABC, Generic[C, CRes]):
+class CommandHandler(didiator.Handler[C, CRes], ABC, Generic[C, CRes]):
     pass

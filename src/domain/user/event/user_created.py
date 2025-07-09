@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
-from domain.common.event.event import Event
-from domain.user.value_object.user_role_enum import UserRoleEnum
+from src.domain.common.event.event import Event
+from src.domain.user.value_object.user_role_enum import UserRoleEnum
 
 
 @dataclass(frozen=True)

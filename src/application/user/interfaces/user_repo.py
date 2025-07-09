@@ -2,8 +2,8 @@ from abc import abstractmethod
 from uuid import UUID
 from typing_extensions import Protocol
 
-from application.user.dto import UserDto
-from domain.user.entity.user import User
+from src.application.user.dto import UserDto
+from src.domain.user.entity.user import User
 
 
 class UserRepo(Protocol):

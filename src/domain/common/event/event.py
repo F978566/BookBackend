@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
-from didiator.interface.entities.event import Event as DidiatorBaseEvent
+from didiator.interface.entities import Event as DidiatorBaseEvent
 
 @dataclass(frozen=True)
 class Event(DidiatorBaseEvent, ABC):
