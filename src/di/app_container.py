@@ -2,6 +2,7 @@ from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncIterator
 from sqlalchemy.ext.asyncio import AsyncSession
+from passlib.context import CryptContext
 # from didiator import Mediator
 
 from src.application.common.interfaces.uow import UnitOfWork
@@ -10,6 +11,7 @@ from src.infrastructure.db.repository.user_repo_impl import UserRepoImpl
 from src.application.common.interfaces.mapper import Mapper
 from src.domain.user.entity.user import User
 from src.application.user.dto import UserDto
+from src.application.user.utils import PasswordEncryptor
 from src.application.user.command.create_user import CreateUserHandler
 from src.infrastructure.mapper.user_mapper import UserMapper
 from src.infrastructure.db.base import async_session_factory
@@ -47,19 +49,10 @@ class AppContainer(Provider):
     def provide_unit_of_work(self, session: AsyncSession) -> UnitOfWork:
         return SQLAlchemyUoW(session)
 
-    # @provide(scope=Scope.REQUEST)
-    # def get_event_mediator(self, dishka_container) -> EventMediator:
-    #     di_builder = DiBuilderImpl(
-    #         di_container=dishka_container,
-    #         di_executor=None,
-    #         di_scopes=["request"]
-    #     )
+    @provide(scope=Scope.APP)
+    def get_crypt_context(self) -> CryptContext:
+        return CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 
-    #     middlewares = [
-    #         DiMiddleware(di_builder, scopes=DiScopes("request"))
-    #     ]
-
-    #     event_observer = EventObserverImpl(middlewares=middlewares)
-    #     event_mediator = EventMediatorImpl(event_observer=event_observer)
-
-    #     return EventMediator(builder=di_builder)
+    @provide(scope=Scope.REQUEST)
+    def provide_password_encryptor(self, crypt_context: CryptContext) -> PasswordEncryptor:
+        return PasswordEncryptor(crypt_context)
