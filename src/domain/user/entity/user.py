@@ -13,7 +13,7 @@ class User(AgregateRoot):
     username: str = field(default_factory=str)
     password: str = field(default_factory=str)
     email: str = field(default_factory=str)
-    user_role: UserRole = field(default_factory=UserRole)
+    user_role: list[UserRole] = field(default_factory=list)
     deleted: bool = field(default=False, kw_only=True)
 
     @classmethod
@@ -25,7 +25,13 @@ class User(AgregateRoot):
         user_role: UserRole,
         user_id: UUID = uuid4(),
     ) -> "User":
-        user = User(id=user_id, username=username, password=password, email=email, user_role=user_role)
+        user = User(
+            id=user_id,
+            username=username,
+            password=password,
+            email=email,
+            user_role=[user_role],
+        )
         user.record_event(
             UserCreated(
                 id=user_id,

@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 
 T = TypeVar("T")
@@ -10,14 +10,14 @@ T = TypeVar("T")
 class BaseValueObject(ABC):
     def __post_init__(self):
         self._validate()
-    
+
     def _validate(self):
         pass
 
 
 @dataclass(frozen=True)
-class ValueObject(ABC, Generic[T]):
+class ValueObject[T](BaseValueObject):
     value: T
-    
+
     def to_raw(self) -> T:
         return self.value

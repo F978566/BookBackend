@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
+from uuid import UUID
 
+from domain.book.value_objects.book_status import BookStatus
+from domain.book.value_objects.book_status_enum import BookStatusEnum
 from src.domain.common.entity.agregate_root import AgregateRoot
 from .page import Page
 from ..event import BookCreated, PageAdded
-from uuid import UUID
 
 
 @dataclass
@@ -13,8 +15,7 @@ class Book(AgregateRoot):
     size: int = field(default=0)
     authors: list[UUID] = field(default_factory=list)
     redactors: list[UUID] = field(default_factory=list)
-    published: bool = field(default=False)
-    aprooved: bool = field(default=False)
+    status: BookStatus = field(default_factory=BookStatus)
 
     @classmethod
     def create(
@@ -43,11 +44,17 @@ class Book(AgregateRoot):
             )
         )
 
-    def publish(self):
-        self.published = True
+    def mark_as_published(self):
+        self.status = BookStatus(BookStatusEnum.PUBLISHED)
 
-    def aproove(self):
-        self.aprooved = True
+    def mark_as_aprooved(self):
+        self.status = BookStatus(BookStatusEnum.APROOVED)
+
+    def mark_as_denied(self):
+        self.status = BookStatus(BookStatusEnum.DENIED)
+
+    def mark_as_in_progress(self):
+        self.status = BookStatus(BookStatusEnum.IN_PROGRESS)
 
     def add_redactor(self, redactor_id: UUID):
         self.redactors.append(redactor_id)
