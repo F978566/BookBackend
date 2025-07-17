@@ -3,6 +3,7 @@ from uuid import UUID
 
 from domain.book.value_objects.book_status import BookStatus
 from domain.book.value_objects.book_status_enum import BookStatusEnum
+from domain.user.value_object.user_role_enum import UserRoleEnum
 from src.domain.common.entity.agregate_root import AgregateRoot
 from .page import Page
 from ..event import BookCreated, PageAdded
@@ -44,16 +45,28 @@ class Book(AgregateRoot):
             )
         )
 
-    def mark_as_published(self):
+    def mark_as_published(self, user_id: UUID):
+        if user_id not in self.authors:
+            return
+
         self.status = BookStatus(BookStatusEnum.PUBLISHED)
 
-    def mark_as_aprooved(self):
+    def mark_as_aprooved(self, user_role: UserRoleEnum):
+        if user_role == UserRoleEnum.MODERATOR:
+            return
+
         self.status = BookStatus(BookStatusEnum.APROOVED)
 
-    def mark_as_denied(self):
+    def mark_as_denied(self, user_role: UserRoleEnum):
+        if user_role == UserRoleEnum.MODERATOR:
+            return
+
         self.status = BookStatus(BookStatusEnum.DENIED)
 
-    def mark_as_in_progress(self):
+    def mark_as_in_progress(self, user_id: UUID):
+        if user_id not in self.authors:
+            return
+
         self.status = BookStatus(BookStatusEnum.IN_PROGRESS)
 
     def add_redactor(self, redactor_id: UUID):
