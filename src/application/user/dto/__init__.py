@@ -1,3 +1,3 @@
-from .user import UserDto  # type: ignore  # noqa: F401
+from .user import UserDto
 
 __all__ = ("UserDto") # type: ignore

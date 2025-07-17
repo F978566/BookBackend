@@ -10,7 +10,6 @@ from src.domain.user.value_object.user_role import UserRole
 
 @dataclass
 class User(AgregateRoot):
-    id: UUID = field(default_factory=uuid4)
     username: str = field(default_factory=str)
     password: str = field(default_factory=str)
     email: str = field(default_factory=str)
