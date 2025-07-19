@@ -9,6 +9,7 @@ from alembic import context
 
 from src.infrastructure.db.models.base import Base
 from src.infrastructure.db.models.user import *
+from src.infrastructure.db.models.book import *
 
 
 load_dotenv()

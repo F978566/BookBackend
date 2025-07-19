@@ -11,7 +11,7 @@ class UserMapper(Mapper[User, UserDto]):
             username=domain_model.username,
             password=domain_model.password,
             email=domain_model.password,
-            user_role=domain_model.user_role.to_raw()
+            user_role=[x.to_raw() for x in domain_model.user_role]
         )
 
     def dto_to_domain(self, model: UserDto) -> User:
@@ -20,5 +20,5 @@ class UserMapper(Mapper[User, UserDto]):
             username=model.username,
             password=model.password,
             email=model.email,
-            user_role=UserRole(model.user_role)
+            user_role=[UserRole(x) for x in model.user_role]
         )

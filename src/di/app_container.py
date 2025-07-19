@@ -1,7 +1,6 @@
 from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncIterator
-from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 # from didiator import Mediator
 
