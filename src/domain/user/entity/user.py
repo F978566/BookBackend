@@ -13,7 +13,7 @@ class User(AgregateRoot):
     username: str = field(default_factory=str)
     password: str = field(default_factory=str)
     email: str = field(default_factory=str)
-    user_role: list[UserRole] = field(default_factory=list)
+    user_role: list[UserRole] = field(default_factory=list[UserRole])
     deleted: bool = field(default=False, kw_only=True)
 
     @classmethod

@@ -4,5 +4,5 @@ from enum import Enum
 class UserRoleEnum(Enum):
     MODERATOR = "moderator"
     ADMIN = "admin"
-    AUTHOR = "author"
+    WRITER = "writer"
     READER = "reader"

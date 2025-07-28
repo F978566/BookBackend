@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from src.application.book.dto.book import BookDto
+from src.application.book.dto import BookDto
 from src.application.book.interfaces.book_repo import BookRepo
 from src.application.common.command import Command, CommandHandler
 from src.application.common.interfaces.uow import UnitOfWork
@@ -32,7 +32,7 @@ class CreateBookHandler(CommandHandler[CreateBook, BookDto]):
             title=command.title,
         )
 
-        await self.book_repo.create_book(new_book)
+        book = await self.book_repo.create_book(new_book)
         await self.uof.commit()
 
-        return self.mapper.domain_to_dto(new_book)
+        return book

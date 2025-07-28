@@ -8,16 +8,17 @@ from src.domain.book.entity import Page
 
 class BookMapper(Mapper[Book, BookDto]):
     def domain_to_dto(self, domain_model: Book) -> BookDto:
+        l: list[PageDto] = [
+            PageDto(
+                id = x.id,
+                text = x.text,
+                number = x.number
+            ) for x in domain_model.pages
+        ]
         return BookDto(
             id = domain_model.id,
             title = domain_model.title,
-            pages = [
-                PageDto(
-                    id = x.id,
-                    text = x.text,
-                    number = x.number
-                ) for x in domain_model.pages
-            ],
+            pages = tuple[PageDto](l),
             size = domain_model.size,
             authors = domain_model.authors,
             redactors = domain_model.redactors,

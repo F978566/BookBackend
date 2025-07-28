@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import update, select
 
-from src.infrastructure.mapper import BookMapper, PageMapper
+from src.application.common.interfaces.mapper import Mapper
 from src.infrastructure.db.models.book import BookModel, PageModel
 from src.infrastructure.db.models.user import UserModel
 from src.application.book.interfaces.book_repo import BookRepo
@@ -17,8 +17,8 @@ class BookRepoImpl(BookRepo):
     def __init__(
         self,
         session: AsyncSession,
-        book_mapper: BookMapper,
-        page_mapper: PageMapper,
+        book_mapper: Mapper[Book, BookDto],
+        page_mapper: Mapper[Page, PageDto],
     ):
         self._session = session
         self._book_mapper = book_mapper
@@ -38,12 +38,18 @@ class BookRepoImpl(BookRepo):
         book_id: UUID,
         page: Page,
     ) -> PageDto:
+        print(book_id, page)
         new_page_model = PageModel(
-            book=book_id,
+            book_id=book_id,
             text=page.text,
             number=page.number,
         )
 
+        await self._session.execute(
+            update(BookModel)
+            .where(BookModel.id==book_id)
+            .values(size=BookModel.size + 1)
+        )
         self._session.add(new_page_model)
 
         return self._page_mapper.domain_to_dto(page)

@@ -20,7 +20,7 @@ class UserRepoImpl(UserRepo):
                 username=new_user.username,
                 password=new_user.password,
                 email=new_user.email,
-                user_role=[x.value for x in new_user.user_role],
+                user_role=tuple([x.value.name for x in new_user.user_role]),
                 deleted=new_user.deleted,
             )
             self._session.add(user)

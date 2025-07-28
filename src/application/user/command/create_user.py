@@ -2,6 +2,7 @@ from dataclasses import dataclass
 # from didiator import EventMediator
 # from didiator import Mediator
 
+from src.application.user.utils.password_encryptor import PasswordEncryptor
 from src.application.common.interfaces.uow import UnitOfWork
 from src.application.user.dto.user import UserDto
 from src.application.user.interfaces.user_repo import UserRepo
@@ -25,17 +26,19 @@ class CreateUserHandler(CommandHandler[CreateUser, UserDto]):
         user_repo: UserRepo,
         uof: UnitOfWork,
         mapper: Mapper[User, UserDto],
+        password_encryptor: PasswordEncryptor,
         # mediator: Mediator,
     ):
         self.user_repo = user_repo
         self.uof = uof
         self.mapper = mapper
+        self.password_encryptor = password_encryptor
         # self.mediator = mediator
 
     async def __call__(self, command: CreateUser) -> UserDto:
         user = User.create(
             username=command.username,
-            password=command.password,
+            password=self.password_encryptor.encrypt_password(command.password),
             email=command.email,
             user_role=UserRole(command.user_role),
         )

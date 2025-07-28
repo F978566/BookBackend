@@ -11,5 +11,5 @@ class UserDto(DTO):
     username: str
     password: str
     email: str
-    user_role: list[UserRoleEnum]
+    user_role: tuple[UserRoleEnum]
     deleted: bool = field(default=False, kw_only=True)

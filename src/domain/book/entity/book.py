@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from domain.book.value_objects.book_status import BookStatus
-from domain.book.value_objects.book_status_enum import BookStatusEnum
-from domain.user.value_object.user_role_enum import UserRoleEnum
+from src.domain.book.value_objects.book_status import BookStatus
+from src.domain.book.value_objects.book_status_enum import BookStatusEnum
+from src.domain.user.value_object.user_role_enum import UserRoleEnum
 from src.domain.common.entity.agregate_root import AgregateRoot
 from .page import Page
 from ..event import BookCreated, PageAdded
@@ -12,10 +12,10 @@ from ..event import BookCreated, PageAdded
 @dataclass
 class Book(AgregateRoot):
     title: str = field(default_factory=str)
-    pages: list[Page] = field(default_factory=list)
+    pages: list[Page] = field(default_factory=list[Page])
     size: int = field(default=0)
-    authors: list[UUID] = field(default_factory=list)
-    redactors: list[UUID] = field(default_factory=list)
+    authors: list[UUID] = field(default_factory=list[UUID])
+    redactors: list[UUID] = field(default_factory=list[UUID])
     status: BookStatus = field(default_factory=BookStatus)
 
     @classmethod
