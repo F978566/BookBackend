@@ -1,15 +1,16 @@
+from typing import List
 from uuid import UUID
+from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import update, select
 
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.db_model_mapper import DbModelMapper
 from src.infrastructure.db.models.book import BookModel, PageModel
 from src.infrastructure.db.models.user import UserModel
 from src.application.book.interfaces.book_repo import BookRepo
 from src.domain.book.entity import Book
 from src.application.book.dto.book import BookDto
 from src.domain.book.entity import Page
-from src.application.book.dto.page import PageDto
 from src.domain.book.value_objects.book_status_enum import BookStatusEnum
 
 
@@ -17,28 +18,25 @@ class BookRepoImpl(BookRepo):
     def __init__(
         self,
         session: AsyncSession,
-        book_mapper: Mapper[Book, BookDto],
-        page_mapper: Mapper[Page, PageDto],
+        book_mapper: DbModelMapper[BookDto, BookModel],
+        redis: Redis,
     ):
         self._session = session
         self._book_mapper = book_mapper
-        self._page_mapper = page_mapper
+        # self.redis = redis
 
-    async def create_book(self, book: Book) -> BookDto:
+    async def create_book(self, book: Book) -> None:
         new_book_model = BookModel(
             title=book.title,
             size=book.size,
         )
         self._session.add(new_book_model)
 
-        return self._book_mapper.domain_to_dto(book)
-
     async def add_book_page(
         self,
         book_id: UUID,
         page: Page,
-    ) -> PageDto:
-        print(book_id, page)
+    ) -> None:
         new_page_model = PageModel(
             book_id=book_id,
             text=page.text,
@@ -52,7 +50,6 @@ class BookRepoImpl(BookRepo):
         )
         self._session.add(new_page_model)
 
-        return self._page_mapper.domain_to_dto(page)
 
     async def set_status(self, status: BookStatusEnum) -> bool:
         try:
@@ -93,3 +90,13 @@ class BookRepoImpl(BookRepo):
         book_model.redactors.append(author_model)
 
         return True
+
+    async def get_all_books_by_author(self, author_id: UUID) -> List[BookDto]:
+        books = (await self._session.execute(
+            select(BookModel)
+            .where(BookModel.authors.any(UserModel.id == author_id))
+        )).scalars()
+        return [
+            self._book_mapper.db_model_to_dto(book)
+            for book in books
+        ]

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.mapper import DomainMapper
 from src.domain.book.entity import Page
 from src.application.book.dto import PageDto
 from src.application.book.interfaces.book_repo import BookRepo
@@ -22,7 +22,7 @@ class AddBookPageHandler(CommandHandler[AddBookPage, PageDto]):
         self,
         book_repo: BookRepo,
         uof: UnitOfWork,
-        mapper: Mapper[Page, PageDto]
+        mapper: DomainMapper[Page, PageDto]
     ):
         self.book_repo = book_repo
         self.uof = uof
@@ -33,11 +33,11 @@ class AddBookPageHandler(CommandHandler[AddBookPage, PageDto]):
             number=command.number,
             text=command.text,
         )
-        page = await self.book_repo.add_book_page(
+        await self.book_repo.add_book_page(
             command.book_id,
             new_page,
         )
 
         await self.uof.commit()
 
-        return page
+        return self.mapper.domain_to_dto(new_page)

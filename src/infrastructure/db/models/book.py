@@ -12,9 +12,7 @@ from .base import Base
 from src.infrastructure.db.models.association_tables import redactors_book_association
 from src.infrastructure.db.models.association_tables import auhtors_book_association
 
-# sqlalchemy.exc.NoForeignKeysError: Could not determine join condition
-# between parent/child tables on relationship UserModel.author_books - there are no foreign keys linking these tables.
-# Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+
 class BookModel(Base):
     __tablename__ = "book_model"
 

@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import delete
 
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.mapper import DomainMapper
 from src.application.user.dto import UserDto
 from src.application.user.interfaces.user_repo import UserRepo
 from src.domain.user.entity.user import User
@@ -10,7 +10,7 @@ from src.infrastructure.db.models.user import UserModel
 
 
 class UserRepoImpl(UserRepo):
-    def __init__(self, session: AsyncSession, mapper: Mapper[User, UserDto]):
+    def __init__(self, session: AsyncSession, mapper: DomainMapper[User, UserDto]):
         self._session = session
         self._mapper = mapper
 

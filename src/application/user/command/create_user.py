@@ -6,7 +6,7 @@ from src.application.user.utils.password_encryptor import PasswordEncryptor
 from src.application.common.interfaces.uow import UnitOfWork
 from src.application.user.dto.user import UserDto
 from src.application.user.interfaces.user_repo import UserRepo
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.mapper import DomainMapper
 from src.domain.user.entity.user import User
 from src.domain.user.value_object.user_role_enum import UserRoleEnum
 from src.domain.user.value_object.user_role import UserRole
@@ -25,7 +25,7 @@ class CreateUserHandler(CommandHandler[CreateUser, UserDto]):
         self,
         user_repo: UserRepo,
         uof: UnitOfWork,
-        mapper: Mapper[User, UserDto],
+        mapper: DomainMapper[User, UserDto],
         password_encryptor: PasswordEncryptor,
         # mediator: Mediator,
     ):

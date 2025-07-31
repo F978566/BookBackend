@@ -2,11 +2,11 @@ from src.domain.book.value_objects.book_status import BookStatus
 from src.application.book.dto.book import BookDto
 from src.application.book.dto.page import PageDto
 from src.domain.book.entity.book import Book
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.mapper import DomainMapper
 from src.domain.book.entity import Page
 
 
-class BookMapper(Mapper[Book, BookDto]):
+class BookMapper(DomainMapper[Book, BookDto]):
     def domain_to_dto(self, domain_model: Book) -> BookDto:
         l: list[PageDto] = [
             PageDto(

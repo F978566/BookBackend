@@ -1,5 +1,6 @@
 # from didiator.interface import Mediator
 from dishka import Provider, Scope, provide # type: ignore
+import redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncIterator
 from passlib.context import CryptContext
@@ -8,13 +9,16 @@ from passlib.context import CryptContext
 
 from src.application.book.command.add_book_page import AddBookPageHandler
 from src.application.book.interfaces.book_repo import BookRepo
+from src.application.common.interfaces.db_model_mapper import DbModelMapper
+from src.infrastructure.db.models.book import BookModel
 from src.infrastructure.db.repository.book_repo_impl import BookRepoImpl
+from src.infrastructure.mapper.book_db_model_mapper import BookDbModelMapper
 from src.infrastructure.mapper.book_mapper import BookMapper
 from src.infrastructure.mapper.page_mapper import PageMapper
 from src.application.common.interfaces.uow import UnitOfWork
 from src.application.user.interfaces.user_repo import UserRepo
 from src.infrastructure.db.repository.user_repo_impl import UserRepoImpl
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.mapper import DomainMapper
 from src.domain.user.entity.user import User
 from src.domain.book.entity import Book, Page
 from src.application.user.dto import UserDto
@@ -35,7 +39,7 @@ class AppContainer(Provider):
             yield session
 
     @provide(scope=Scope.REQUEST)
-    def provide_user_repository(self, session: AsyncSession, mapper: Mapper[User, UserDto]) -> UserRepo:
+    def provide_user_repository(self, session: AsyncSession, mapper: DomainMapper[User, UserDto]) -> UserRepo:
         return UserRepoImpl(
             session=session,
             mapper=mapper,
@@ -46,22 +50,22 @@ class AppContainer(Provider):
         self,
         user_repo: UserRepo,
         uof: UnitOfWork,
-        mapper: Mapper[User, UserDto],
+        mapper: DomainMapper[User, UserDto],
         password_encryptor: PasswordEncryptor,
         # mediator: Mediator,
     ) -> CreateUserHandler:
         return CreateUserHandler(user_repo, uof, mapper, password_encryptor)
 
     @provide(scope=Scope.REQUEST)
-    def provide_user_mapper(self) -> Mapper[User, UserDto]:
+    def provide_user_mapper(self) -> DomainMapper[User, UserDto]:
         return UserMapper()
 
     @provide(scope=Scope.REQUEST)
-    def provide_book_mapper(self) -> Mapper[Book, BookDto]:
+    def provide_book_mapper(self) -> DomainMapper[Book, BookDto]:
         return BookMapper()
 
     @provide(scope=Scope.REQUEST)
-    def provide_page_mapper(self) -> Mapper[Page, PageDto]:
+    def provide_page_mapper(self) -> DomainMapper[Page, PageDto]:
         return PageMapper()
 
     @provide(scope=Scope.REQUEST)
@@ -80,17 +84,21 @@ class AppContainer(Provider):
     def provide_book_repo(
         self,
         session: AsyncSession,
-        book_mapper: Mapper[Book, BookDto],
-        page_mapper: Mapper[Page, PageDto],
+        book_mapper: DbModelMapper[BookDto, BookModel],
+        redis: redis.Redis,
     ) -> BookRepo:
-        return BookRepoImpl(session, book_mapper, page_mapper)
+        return BookRepoImpl(session, book_mapper, redis)
+    
+    @provide(scope=Scope.REQUEST)
+    def provide_db_book_model_wrapper(self) -> DbModelMapper[BookDto, BookModel]:
+        return BookDbModelMapper()
 
     @provide(scope=Scope.REQUEST)
     def provide_create_book_command_handler(
         self,
         book_repo: BookRepo,
         uof: UnitOfWork,
-        mapper: Mapper[Book, BookDto],
+        mapper: DomainMapper[Book, BookDto],
         # mediator: Mediator,
     ) -> CreateBookHandler:
         return CreateBookHandler(book_repo, uof, mapper)
@@ -100,11 +108,14 @@ class AppContainer(Provider):
         self,
         book_repo: BookRepo,
         uof: UnitOfWork,
-        mapper: Mapper[Page, PageDto],
+        mapper: DomainMapper[Page, PageDto],
         # mediator: Mediator,
     ) -> AddBookPageHandler:
         return AddBookPageHandler(book_repo, uof, mapper)
-
+    
+    @provide(scope=Scope.APP)
+    def provide_redis(self) -> redis.Redis:
+        return redis.Redis(host='localhost', port=6379, db=0)
 
     # @provide(scope=Scope.APP)
     # def provide_mediator(self) -> Mediator:

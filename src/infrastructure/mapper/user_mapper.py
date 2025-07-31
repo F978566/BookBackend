@@ -1,11 +1,11 @@
 from src.domain.user.value_object.user_role_enum import UserRoleEnum
-from src.application.common.interfaces.mapper import Mapper
+from src.application.common.interfaces.mapper import DomainMapper
 from src.application.user.dto import UserDto
 from src.domain.user.entity.user import User
 from src.domain.user.value_object.user_role import UserRole
 
 
-class UserMapper(Mapper[User, UserDto]):
+class UserMapper(DomainMapper[User, UserDto]):
     def domain_to_dto(self, domain_model: User) -> UserDto:
         return UserDto(
             id=domain_model.id,
