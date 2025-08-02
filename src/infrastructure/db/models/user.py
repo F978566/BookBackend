@@ -23,8 +23,8 @@ class UserModel(Base):
     user_role: Mapped[List[UserRoleEnum]] = mapped_column(ARRAY(Enum(UserRoleEnum)))
     deleted: Mapped[bool]
 
-    author_books: Mapped[List["BookModel"]] = relationship(secondary=auhtors_book_association, back_populates="authors")
-    redactor_books: Mapped[List["BookModel"]] = relationship(secondary=redactors_book_association, back_populates="redactors")
+    author_books: Mapped[List["BookModel"]] = relationship(secondary=auhtors_book_association, back_populates="authors")  # type: ignore # noqa: F821
+    redactor_books: Mapped[List["BookModel"]] = relationship(secondary=redactors_book_association, back_populates="redactors")  # type: ignore # noqa: F821
 
     def __repr__(self):
         return (f"UserModel(id={self.id!r}, "

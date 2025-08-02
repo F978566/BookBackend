@@ -10,7 +10,11 @@ from src.domain.book.entity import Page
 
 class BookRepo(Protocol):
     @abstractmethod
-    async def create_book(self, book: Book) -> None: ...
+    async def create_book(
+        self,
+        book: Book,
+        author_id: UUID,
+    ) -> None: ...
 
     @abstractmethod
     async def add_book_page(

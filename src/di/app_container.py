@@ -1,14 +1,13 @@
-# from didiator.interface import Mediator
 from dishka import Provider, Scope, provide # type: ignore
 import redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncIterator
 from passlib.context import CryptContext
-# from dishka import make_async_container
-# from didiator import Mediator
+from dishka import make_async_container
 
 from src.application.book.command.add_book_page import AddBookPageHandler
 from src.application.book.interfaces.book_repo import BookRepo
+from src.application.book.query import GetAllBooksByAuthorIdHandler
 from src.application.common.interfaces.db_model_mapper import DbModelMapper
 from src.infrastructure.db.models.book import BookModel
 from src.infrastructure.db.repository.book_repo_impl import BookRepoImpl
@@ -28,7 +27,6 @@ from src.application.user.command.create_user import CreateUserHandler
 from src.infrastructure.mapper.user_mapper import UserMapper
 from src.infrastructure.db.base import async_session_factory
 from src.application.book.command.create_book import CreateBookHandler
-# from src.di.mediator import build_mediator
 from src.infrastructure.db.uof import SQLAlchemyUoW
 
 
@@ -85,7 +83,7 @@ class AppContainer(Provider):
         self,
         session: AsyncSession,
         book_mapper: DbModelMapper[BookDto, BookModel],
-        redis: redis.Redis,
+        redis: redis.asyncio.Redis,
     ) -> BookRepo:
         return BookRepoImpl(session, book_mapper, redis)
     
@@ -114,9 +112,15 @@ class AppContainer(Provider):
         return AddBookPageHandler(book_repo, uof, mapper)
     
     @provide(scope=Scope.APP)
-    def provide_redis(self) -> redis.Redis:
-        return redis.Redis(host='localhost', port=6379, db=0)
+    def provide_redis(self) -> redis.asyncio.Redis:
+        return redis.asyncio.Redis(host='redis', port=6379, db=0, decode_responses=True)
 
-    # @provide(scope=Scope.APP)
-    # def provide_mediator(self) -> Mediator:
-    #     return build_mediator(make_async_container(self))
+    @provide(scope=Scope.REQUEST)
+    def provide_get_all_books_by_author_id_handler(
+        self,
+        book_repo: BookRepo,
+    ) -> GetAllBooksByAuthorIdHandler:
+        return GetAllBooksByAuthorIdHandler(book_repo)
+
+
+container = make_async_container(AppContainer())

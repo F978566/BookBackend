@@ -1,4 +1,4 @@
-from dishka import AsyncContainer, make_async_container
+from dishka import AsyncContainer
 
 from didiator import Mediator
 from didiator.ioc.dishka import DishkaIoc
@@ -9,8 +9,9 @@ from src.application.book.command import (
     CreateBook,
     CreateBookHandler,
 )
+from src.application.book.query import GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler
 from src.application.user.command.create_user import CreateUser, CreateUserHandler
-from src.di.app_container import AppContainer
+from .app_container import container
 
 
 def build_mediator(container: AsyncContainer) -> Mediator:
@@ -19,12 +20,12 @@ def build_mediator(container: AsyncContainer) -> Mediator:
     mediator.register_request_handler(CreateUser, CreateUserHandler)
     mediator.register_request_handler(CreateBook, CreateBookHandler)
     mediator.register_request_handler(AddBookPage, AddBookPageHandler)
+    mediator.register_request_handler(GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler)
 
     return mediator
 
 
 def get_mediator() -> Mediator:
-    container = make_async_container(AppContainer())
     mediator = build_mediator(container)
 
     return mediator

@@ -20,7 +20,7 @@ class CreateBookHandler(CommandHandler[CreateBook, BookDto]):
         self,
         book_repo: BookRepo,
         uof: UnitOfWork,
-        mapper: DomainMapper[Book, BookDto]
+        mapper: DomainMapper[Book, BookDto],
     ):
         self.book_repo = book_repo
         self.uof = uof
@@ -32,7 +32,7 @@ class CreateBookHandler(CommandHandler[CreateBook, BookDto]):
             title=command.title,
         )
 
-        await self.book_repo.create_book(new_book)
+        await self.book_repo.create_book(new_book, command.author)
         await self.uof.commit()
 
         return self.mapper.domain_to_dto(new_book)

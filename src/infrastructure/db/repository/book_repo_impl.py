@@ -1,8 +1,11 @@
+import json
 from typing import List
 from uuid import UUID
-from redis import Redis
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import update, select
+from sqlalchemy.orm import selectinload
+import dataclasses
 
 from src.application.common.interfaces.db_model_mapper import DbModelMapper
 from src.infrastructure.db.models.book import BookModel, PageModel
@@ -23,14 +26,24 @@ class BookRepoImpl(BookRepo):
     ):
         self._session = session
         self._book_mapper = book_mapper
-        # self.redis = redis
+        self.redis = redis
 
-    async def create_book(self, book: Book) -> None:
+    async def create_book(
+        self,
+        book: Book,
+        author_id: UUID,
+    ) -> None:
         new_book_model = BookModel(
             title=book.title,
             size=book.size,
         )
+        author = (await self._session.execute(
+            select(UserModel)
+            .where(UserModel.id == author_id)
+            .options(selectinload(UserModel.author_books)) # type: ignore
+        )).scalar()
         self._session.add(new_book_model)
+        author.author_books.append(new_book_model) # type: ignore
 
     async def add_book_page(
         self,
@@ -92,11 +105,30 @@ class BookRepoImpl(BookRepo):
         return True
 
     async def get_all_books_by_author(self, author_id: UUID) -> List[BookDto]:
+        cached_books = await self.redis.get(f"author_{author_id}")
+        
+        if cached_books:
+            books_data = json.loads(cached_books)
+            return [BookDto(**book_data) for book_data in books_data]
+        
         books = (await self._session.execute(
             select(BookModel)
             .where(BookModel.authors.any(UserModel.id == author_id))
+            .options(
+                selectinload(BookModel.authors), # type: ignore
+                selectinload(BookModel.redactors), # type: ignore
+                selectinload(BookModel.pages), # type: ignore
+            )
         )).scalars()
-        return [
+
+        res = [
             self._book_mapper.db_model_to_dto(book)
             for book in books
         ]
+
+        books_json = json.dumps([dataclasses.asdict(book) for book in res], default=str)
+        
+        
+        await self.redis.set(f"author_{author_id}", books_json, ex=60)
+
+        return res

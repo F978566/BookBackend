@@ -12,7 +12,7 @@ user_router = APIRouter(
 
 @user_router.post("/create/")
 async def create_user(
+    new_user: CreateUser,
     mediator: Mediator = Depends(get_mediator), # type: ignore
-    new_user: CreateUser | None = None,
 ):
     return (await mediator.send(new_user))

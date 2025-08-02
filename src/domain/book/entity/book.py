@@ -33,7 +33,7 @@ class Book(AgregateRoot):
             )
         )
 
-        return Book(title=title)
+        return Book(title=title, authors=[author])
 
     def add_page(self, page_numbrer: int, text: str):
         self.size += 1
