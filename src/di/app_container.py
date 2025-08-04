@@ -83,7 +83,7 @@ class AppContainer(Provider):
         self,
         session: AsyncSession,
         book_mapper: DbModelMapper[BookDto, BookModel],
-        redis: redis.asyncio.Redis,
+        redis: redis.asyncio.Redis, # type: ignore
     ) -> BookRepo:
         return BookRepoImpl(session, book_mapper, redis)
     
