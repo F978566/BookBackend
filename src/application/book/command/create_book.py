@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from uuid import UUID
 
 from src.application.book.dto import BookDto
@@ -27,12 +27,15 @@ class CreateBookHandler(CommandHandler[CreateBook, BookDto]):
         self.mapper = mapper
 
     async def __call__(self, command: CreateBook) -> BookDto:
+        redactor_id = await self.book_repo.choose_redactor()
+
         new_book  = Book.create(
             author=command.author,
+            redactor=redactor_id,
             title=command.title,
         )
 
-        await self.book_repo.create_book(new_book, command.author)
+        book_id = await self.book_repo.create_book(new_book, command.author)
         await self.uof.commit()
 
-        return self.mapper.domain_to_dto(new_book)
+        return replace(self.mapper.domain_to_dto(new_book), id=book_id, redactors=[redactor_id])

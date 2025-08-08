@@ -5,11 +5,12 @@ from typing import AsyncIterator
 from passlib.context import CryptContext
 from dishka import make_async_container
 
-from src.application.book.command.add_book_page import AddBookPageHandler
+from src.application.book.command import AddBookPageHandler, CreateBookHandler, ChangeBookStatusHandler
 from src.application.book.interfaces.book_repo import BookRepo
 from src.application.book.query import GetAllBooksByAuthorIdHandler
 from src.application.common.interfaces.db_model_mapper import DbModelMapper
 from src.infrastructure.db.models.book import BookModel
+from src.infrastructure.db.models.user import UserModel
 from src.infrastructure.db.repository.book_repo_impl import BookRepoImpl
 from src.infrastructure.mapper.book_db_model_mapper import BookDbModelMapper
 from src.infrastructure.mapper.book_mapper import BookMapper
@@ -23,10 +24,10 @@ from src.domain.book.entity import Book, Page
 from src.application.user.dto import UserDto
 from src.application.book.dto import BookDto, PageDto
 from src.application.user.utils import PasswordEncryptor
-from src.application.user.command.create_user import CreateUserHandler
+from src.application.user.command import CreateUserHandler, AddUserRoleHandler
+from src.infrastructure.mapper.user_db_model_mapper import UserDbModelMapper
 from src.infrastructure.mapper.user_mapper import UserMapper
 from src.infrastructure.db.base import async_session_factory
-from src.application.book.command.create_book import CreateBookHandler
 from src.infrastructure.db.uof import SQLAlchemyUoW
 
 
@@ -37,7 +38,7 @@ class AppContainer(Provider):
             yield session
 
     @provide(scope=Scope.REQUEST)
-    def provide_user_repository(self, session: AsyncSession, mapper: DomainMapper[User, UserDto]) -> UserRepo:
+    def provide_user_repository(self, session: AsyncSession, mapper: DbModelMapper[UserDto, UserModel]) -> UserRepo:
         return UserRepoImpl(
             session=session,
             mapper=mapper,
@@ -86,10 +87,14 @@ class AppContainer(Provider):
         redis: redis.asyncio.Redis, # type: ignore
     ) -> BookRepo:
         return BookRepoImpl(session, book_mapper, redis)
-    
+
     @provide(scope=Scope.REQUEST)
     def provide_db_book_model_wrapper(self) -> DbModelMapper[BookDto, BookModel]:
         return BookDbModelMapper()
+
+    @provide(scope=Scope.REQUEST)
+    def provide_db_user_model_wrapper(self) -> DbModelMapper[UserDto, UserModel]:
+        return UserDbModelMapper()
 
     @provide(scope=Scope.REQUEST)
     def provide_create_book_command_handler(
@@ -110,7 +115,7 @@ class AppContainer(Provider):
         # mediator: Mediator,
     ) -> AddBookPageHandler:
         return AddBookPageHandler(book_repo, uof, mapper)
-    
+
     @provide(scope=Scope.APP)
     def provide_redis(self) -> redis.asyncio.Redis:
         return redis.asyncio.Redis(host='redis', port=6379, db=0, decode_responses=True)
@@ -121,6 +126,23 @@ class AppContainer(Provider):
         book_repo: BookRepo,
     ) -> GetAllBooksByAuthorIdHandler:
         return GetAllBooksByAuthorIdHandler(book_repo)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_add_user_role_command_handler(
+        self,
+        user_repo: UserRepo,
+        uof: UnitOfWork,
+    ) -> AddUserRoleHandler:
+        return AddUserRoleHandler(user_repo, uof)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_change_book_status_command_handler(
+        self,
+        book_repo: BookRepo,
+        user_repo: UserRepo,
+        uof: UnitOfWork,
+    ) -> ChangeBookStatusHandler:
+        return ChangeBookStatusHandler(book_repo, user_repo, uof)
 
 
 container = make_async_container(AppContainer())

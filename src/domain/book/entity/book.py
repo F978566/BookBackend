@@ -23,17 +23,18 @@ class Book(AgregateRoot):
         cls,
         title: str,
         author: UUID,
+        redactor: UUID,
     ) -> "Book":
         book = Book(title=title)
 
         book.record_event(
             BookCreated(
                 title=title,
-                author=author
+                author=author,
             )
         )
 
-        return Book(title=title, authors=[author])
+        return Book(title=title, authors=[author], redactors=[redactor])
 
     def add_page(self, page_numbrer: int, text: str):
         self.size += 1

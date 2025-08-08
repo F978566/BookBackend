@@ -8,9 +8,16 @@ from src.application.book.command import (
     AddBookPageHandler,
     CreateBook,
     CreateBookHandler,
+    ChangeBookStatus,
+    ChangeBookStatusHandler,
 )
 from src.application.book.query import GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler
-from src.application.user.command.create_user import CreateUser, CreateUserHandler
+from src.application.user.command import (
+    CreateUser,
+    CreateUserHandler,
+    AddUserRole,
+    AddUserRoleHandler,
+)
 from .app_container import container
 
 
@@ -20,6 +27,9 @@ def build_mediator(container: AsyncContainer) -> Mediator:
     mediator.register_request_handler(CreateUser, CreateUserHandler)
     mediator.register_request_handler(CreateBook, CreateBookHandler)
     mediator.register_request_handler(AddBookPage, AddBookPageHandler)
+    mediator.register_request_handler(AddUserRole, AddUserRoleHandler)
+    mediator.register_request_handler(ChangeBookStatus, ChangeBookStatusHandler)
+
     mediator.register_request_handler(GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler)
 
     return mediator
