@@ -140,9 +140,10 @@ class AppContainer(Provider):
         self,
         book_repo: BookRepo,
         user_repo: UserRepo,
+        book_mapper: DomainMapper[Book, BookDto],
         uof: UnitOfWork,
     ) -> ChangeBookStatusHandler:
-        return ChangeBookStatusHandler(book_repo, user_repo, uof)
+        return ChangeBookStatusHandler(book_repo, user_repo, book_mapper, uof)
 
 
 container = make_async_container(AppContainer())

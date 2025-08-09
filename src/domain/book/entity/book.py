@@ -3,7 +3,6 @@ from uuid import UUID
 
 from src.domain.book.value_objects.book_status import BookStatus
 from src.domain.book.value_objects.book_status_enum import BookStatusEnum
-from src.domain.user.value_object.user_role_enum import UserRoleEnum
 from src.domain.common.entity.agregate_root import AgregateRoot
 from .page import Page
 from ..event import BookCreated, PageAdded
@@ -46,29 +45,34 @@ class Book(AgregateRoot):
             )
         )
 
-    def mark_as_published(self, user_id: UUID):
-        if user_id not in self.authors:
-            return
+    def change_book_status(
+        self,
+        user_id: UUID,
+        status: BookStatusEnum,
+    ):
+        if (status == BookStatusEnum.APROOVED) and (user_id not in self.redactors):
+            raise ValueError()
 
-        self.status = BookStatus(BookStatusEnum.PUBLISHED)
+        if (status == BookStatusEnum.DENIED) and (user_id in self.redactors):
+            raise ValueError()
 
-    def mark_as_aprooved(self, user_role: UserRoleEnum):
-        if user_role == UserRoleEnum.MODERATOR:
-            return
+        if (status == BookStatusEnum.IN_PROGRESS) and (user_id not in self.authors):
+            raise ValueError()
 
-        self.status = BookStatus(BookStatusEnum.APROOVED)
+        if (status == BookStatusEnum.PUBLISHED) and (user_id not in self.authors):
+            raise ValueError()
 
-    def mark_as_denied(self, user_role: UserRoleEnum):
-        if user_role == UserRoleEnum.MODERATOR:
-            return
+        self.status = BookStatus(status)
 
-        self.status = BookStatus(BookStatusEnum.DENIED)
-
-    def mark_as_in_progress(self, user_id: UUID):
-        if user_id not in self.authors:
-            return
-
-        self.status = BookStatus(BookStatusEnum.IN_PROGRESS)
+        return Book(
+            id=self.id,
+            title=self.title,
+            authors=self.authors,
+            size=self.size,
+            pages=self.pages,
+            redactors=self.redactors,
+            status=BookStatus(status),
+        )
 
     def add_redactor(self, redactor_id: UUID):
         self.redactors.append(redactor_id)
