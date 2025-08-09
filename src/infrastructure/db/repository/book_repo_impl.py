@@ -4,7 +4,7 @@ from uuid import UUID
 from redis.asyncio import Redis # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import update, select
-from sqlalchemy.orm import selectinload, attributes
+from sqlalchemy.orm import selectinload
 from sqlalchemy import func
 import dataclasses
 
@@ -110,7 +110,15 @@ class BookRepoImpl(BookRepo):
         return True
 
     async def add_author(self, book_id: UUID, author_id: UUID) -> bool:
-        book_model = (await self._session.execute(select(BookModel).where(BookModel.id==book_id))).scalar()
+        book_model = (await
+            self._session.execute(
+                select(BookModel)
+                .where(BookModel.id==book_id)
+                .options(
+                    selectinload(BookModel.authors)
+                )
+            )
+        ).scalar()
 
         if book_model is None:
             return False
@@ -120,7 +128,7 @@ class BookRepoImpl(BookRepo):
         if author_model is None:
             return False
 
-        book_model.redactors.append(author_model)
+        book_model.authors.append(author_model)
 
         return True
 

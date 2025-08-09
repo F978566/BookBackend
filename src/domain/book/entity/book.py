@@ -4,6 +4,8 @@ from uuid import UUID
 from src.domain.book.value_objects.book_status import BookStatus
 from src.domain.book.value_objects.book_status_enum import BookStatusEnum
 from src.domain.common.entity.agregate_root import AgregateRoot
+from src.domain.user.entity.user import User
+from src.domain.user.value_object.user_role_enum import UserRoleEnum
 from .page import Page
 from ..event import BookCreated, PageAdded
 
@@ -77,5 +79,11 @@ class Book(AgregateRoot):
     def add_redactor(self, redactor_id: UUID):
         self.redactors.append(redactor_id)
 
-    def add_author(self, author_id: UUID):
+    def add_author(self, author_id: UUID, user: User):
+        if UserRoleEnum.WRITER not in user.user_role:
+            ValueError()
+
+        if author_id not in self.authors:
+            ValueError()
+
         self.redactors.append(author_id)

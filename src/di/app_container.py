@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 from dishka import make_async_container
 
 from src.application.book.command import AddBookPageHandler, CreateBookHandler, ChangeBookStatusHandler
+from src.application.book.command.add_book_author import AddBookAuthorHandler
 from src.application.book.interfaces.book_repo import BookRepo
 from src.application.book.query import GetAllBooksByAuthorIdHandler
 from src.application.common.interfaces.db_model_mapper import DbModelMapper
@@ -139,11 +140,21 @@ class AppContainer(Provider):
     def provide_change_book_status_command_handler(
         self,
         book_repo: BookRepo,
-        user_repo: UserRepo,
         book_mapper: DomainMapper[Book, BookDto],
         uof: UnitOfWork,
     ) -> ChangeBookStatusHandler:
-        return ChangeBookStatusHandler(book_repo, user_repo, book_mapper, uof)
+        return ChangeBookStatusHandler(book_repo, book_mapper, uof)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_add_book_author_command_handler(
+        self,
+        book_repo: BookRepo,
+        user_repo: UserRepo,
+        book_mapper: DomainMapper[Book, BookDto],
+        user_mapper: DomainMapper[User, UserDto],
+        uof: UnitOfWork,
+    ) -> AddBookAuthorHandler:
+        return AddBookAuthorHandler(book_repo, user_repo, book_mapper, user_mapper, uof)
 
 
 container = make_async_container(AppContainer())

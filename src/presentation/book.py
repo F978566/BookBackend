@@ -3,7 +3,11 @@ from didiator import Mediator
 from fastapi import APIRouter
 from fastapi.params import Depends
 
-from src.application.book.command import CreateBook, ChangeBookStatus
+from src.application.book.command import (
+    CreateBook,
+    ChangeBookStatus,
+    AddBookAuthor,
+)
 from src.application.book.query import GetAllBooksByAuthorId
 from src.di.mediator import get_mediator
 
@@ -30,6 +34,13 @@ async def get_all_books_by_author_id(
 @book_router.patch("/change_book_status")
 async def change_book_status(
     change_book_status: ChangeBookStatus,
+    mediator: Mediator = Depends(get_mediator), # type: ignore
+):
+    return (await mediator.send(change_book_status))
+
+@book_router.post("/add_book_author")
+async def add_book_author(
+    change_book_status: AddBookAuthor,
     mediator: Mediator = Depends(get_mediator), # type: ignore
 ):
     return (await mediator.send(change_book_status))

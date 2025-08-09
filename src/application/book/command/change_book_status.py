@@ -6,7 +6,6 @@ from src.application.book.interfaces.book_repo import BookRepo
 from src.application.common.command import Command, CommandHandler
 from src.application.common.interfaces.mapper import DomainMapper
 from src.application.common.interfaces.uow import UnitOfWork
-from src.application.user.interfaces.user_repo import UserRepo
 from src.domain.book.entity.book import Book
 from src.domain.book.value_objects.book_status_enum import BookStatusEnum
 
@@ -22,12 +21,10 @@ class ChangeBookStatusHandler(CommandHandler[ChangeBookStatus, None]):
     def __init__(
         self,
         book_repo: BookRepo,
-        user_repo: UserRepo,
         mapper: DomainMapper[Book, BookDto],
         uof: UnitOfWork,
     ):
         self.book_repo = book_repo
-        self.user_repo = user_repo
         self.mapper = mapper
         self.uof = uof
 

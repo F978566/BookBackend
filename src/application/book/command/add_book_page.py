@@ -16,13 +16,12 @@ class AddBookPage(Command[PageDto]):
     text: str
 
 
-
 class AddBookPageHandler(CommandHandler[AddBookPage, PageDto]):
     def __init__(
         self,
         book_repo: BookRepo,
         uof: UnitOfWork,
-        mapper: DomainMapper[Page, PageDto]
+        mapper: DomainMapper[Page, PageDto],
     ):
         self.book_repo = book_repo
         self.uof = uof
