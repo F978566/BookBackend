@@ -7,6 +7,7 @@ from src.application.book.command import (
     CreateBook,
     ChangeBookStatus,
     AddBookAuthor,
+    AddBookRedactor,
 )
 from src.application.book.query import GetAllBooksByAuthorId
 from src.di.mediator import get_mediator
@@ -41,6 +42,13 @@ async def change_book_status(
 @book_router.post("/add_book_author")
 async def add_book_author(
     change_book_status: AddBookAuthor,
+    mediator: Mediator = Depends(get_mediator), # type: ignore
+):
+    return (await mediator.send(change_book_status))
+
+@book_router.post("/add_book_redactor")
+async def add_book_redactor(
+    change_book_status: AddBookRedactor,
     mediator: Mediator = Depends(get_mediator), # type: ignore
 ):
     return (await mediator.send(change_book_status))

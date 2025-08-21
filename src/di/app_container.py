@@ -5,8 +5,13 @@ from typing import AsyncIterator
 from passlib.context import CryptContext
 from dishka import make_async_container
 
-from src.application.book.command import AddBookPageHandler, CreateBookHandler, ChangeBookStatusHandler
-from src.application.book.command.add_book_author import AddBookAuthorHandler
+from src.application.book.command import (
+    AddBookPageHandler,
+    CreateBookHandler,
+    ChangeBookStatusHandler,
+    AddBookRedactorHandler,
+    AddBookAuthorHandler
+)
 from src.application.book.interfaces.book_repo import BookRepo
 from src.application.book.query import GetAllBooksByAuthorIdHandler
 from src.application.common.interfaces.db_model_mapper import DbModelMapper
@@ -155,6 +160,17 @@ class AppContainer(Provider):
         uof: UnitOfWork,
     ) -> AddBookAuthorHandler:
         return AddBookAuthorHandler(book_repo, user_repo, book_mapper, user_mapper, uof)
+
+    @provide(scope=Scope.REQUEST)
+    def provide_add_book_redactor_command_handler(
+        self,
+        book_repo: BookRepo,
+        user_repo: UserRepo,
+        book_mapper: DomainMapper[Book, BookDto],
+        user_mapper: DomainMapper[User, UserDto],
+        uof: UnitOfWork,
+    ) -> AddBookRedactorHandler:
+        return AddBookRedactorHandler(book_repo, user_repo, book_mapper, user_mapper, uof)
 
 
 container = make_async_container(AppContainer())

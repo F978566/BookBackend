@@ -13,33 +13,33 @@ from src.domain.user.entity.user import User
 
 
 @dataclass
-class AddBookAuthor(Command[None]):
-    author_id: UUID
-    user_id: UUID
+class AddBookRedactor(Command[None]):
     book_id: UUID
+    redactor_id: UUID
+    new_redactor_id: UUID
 
 
-class AddBookAuthorHandler(CommandHandler[AddBookAuthor, None]):
+class AddBookRedactorHandler(CommandHandler[AddBookRedactor, None]):
     def __init__(
         self,
         book_repo: BookRepo,
         user_repo: UserRepo,
-        mapper: DomainMapper[Book, BookDto],
+        book_mapper: DomainMapper[Book, BookDto],
         user_mapper: DomainMapper[User, UserDto],
         uof: UnitOfWork,
     ):
         self.book_repo = book_repo
         self.user_repo = user_repo
-        self.uof = uof
-        self.mapper = mapper
+        self.book_mapper = book_mapper
         self.user_mapper = user_mapper
+        self.uof = uof
 
-    async def __call__(self, request: AddBookAuthor) -> None:
-        user = await self.user_repo.get_user_by_id(request.user_id)
+    async def __call__(self, request: AddBookRedactor) -> None:
+        user = await self.user_repo.get_user_by_id(request.new_redactor_id)
         book = await self.book_repo.get_book_by_id(request.book_id)
 
-        domain_book = self.mapper.dto_to_domain(book)
-        domain_book.add_author(request.author_id, self.user_mapper.dto_to_domain(user))
+        domain_book = self.book_mapper.dto_to_domain(book)
+        domain_book.add_redactor(request.redactor_id, self.user_mapper.dto_to_domain(user))
 
-        await self.book_repo.add_author(request.book_id, request.user_id)
+        await self.book_repo.add_author(request.book_id, request.new_redactor_id)
         await self.uof.commit()

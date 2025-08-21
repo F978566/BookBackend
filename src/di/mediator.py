@@ -12,6 +12,8 @@ from src.application.book.command import (
     ChangeBookStatusHandler,
     AddBookAuthor,
     AddBookAuthorHandler,
+    AddBookRedactor,
+    AddBookRedactorHandler,
 )
 from src.application.book.query import GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler
 from src.application.user.command import (
@@ -32,6 +34,7 @@ def build_mediator(container: AsyncContainer) -> Mediator:
     mediator.register_request_handler(AddUserRole, AddUserRoleHandler)
     mediator.register_request_handler(ChangeBookStatus, ChangeBookStatusHandler)
     mediator.register_request_handler(AddBookAuthor, AddBookAuthorHandler)
+    mediator.register_request_handler(AddBookRedactor, AddBookRedactorHandler)
 
     mediator.register_request_handler(GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler)
 

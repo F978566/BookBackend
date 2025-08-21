@@ -76,8 +76,14 @@ class Book(AgregateRoot):
             status=BookStatus(status),
         )
 
-    def add_redactor(self, redactor_id: UUID):
-        self.redactors.append(redactor_id)
+    def add_redactor(self, redactor_id: UUID, user: User):
+        if UserRoleEnum.MODERATOR not in user.user_role:
+            ValueError()
+
+        if redactor_id not in self.redactors:
+            ValueError()
+
+        self.redactors.append(user.id)
 
     def add_author(self, author_id: UUID, user: User):
         if UserRoleEnum.WRITER not in user.user_role:
@@ -86,4 +92,4 @@ class Book(AgregateRoot):
         if author_id not in self.authors:
             ValueError()
 
-        self.redactors.append(author_id)
+        self.authors.append(user.id)
