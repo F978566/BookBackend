@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-# from didiator import EventMediator
-# from didiator import Mediator
+
+from didiator import Mediator
 
 from src.application.user.utils.password_encryptor import PasswordEncryptor
 from src.application.common.interfaces.uow import UnitOfWork
@@ -27,13 +27,13 @@ class CreateUserHandler(CommandHandler[CreateUser, UserDto]):
         uof: UnitOfWork,
         mapper: DomainMapper[User, UserDto],
         password_encryptor: PasswordEncryptor,
-        # mediator: Mediator,
+        mediator: Mediator,
     ):
         self.user_repo = user_repo
         self.uof = uof
         self.mapper = mapper
         self.password_encryptor = password_encryptor
-        # self.mediator = mediator
+        self.mediator = mediator
 
     async def __call__(self, command: CreateUser) -> UserDto:
         user = User.create(
@@ -44,5 +44,6 @@ class CreateUserHandler(CommandHandler[CreateUser, UserDto]):
         )
         await self.user_repo.create_user(user)
         await self.uof.commit()
-        # await self.mediator.publish(user.pull_events())
+        print("Publish events")
+        await self.mediator.publish(user.pull_events())
         return self.mapper.domain_to_dto(user)

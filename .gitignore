@@ -4,3 +4,5 @@ venv/
 .env
 alembic/versions/
 venv
+typings/
+consumer/

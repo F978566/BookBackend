@@ -1,40 +1,55 @@
-from dishka import Provider, Scope, provide # type: ignore
 import redis
+from aiokafka.consumer.consumer import AIOKafkaConsumer
+from aiokafka.producer.producer import AIOKafkaProducer
+from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncIterator
-from passlib.context import CryptContext
-from dishka import make_async_container
+
+from dishka import AsyncContainer, Provider, Scope, make_async_container, provide # type: ignore
+
+from didiator import Mediator
+from didiator.ioc.dishka import DishkaIoc
+from didiator.mediator import MediatorImpl
 
 from src.application.book.command import (
+    AddBookAuthorHandler,
     AddBookPageHandler,
-    CreateBookHandler,
-    ChangeBookStatusHandler,
     AddBookRedactorHandler,
-    AddBookAuthorHandler
+    ChangeBookStatusHandler,
+    CreateBookHandler,
+    AddBookAuthor,
+    AddBookRedactor,
+    AddBookPage,
+    ChangeBookStatus,
+    CreateBook,
 )
+from src.application.book.dto import BookDto, PageDto
 from src.application.book.interfaces.book_repo import BookRepo
-from src.application.book.query import GetAllBooksByAuthorIdHandler
-from src.application.common.interfaces.db_model_mapper import DbModelMapper
+from src.application.book.query import GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler
+from src.application.common.interfaces.mapper import DomainMapper
+from src.application.common.interfaces.uow import UnitOfWork
+from src.application.user.command import CreateUser, CreateUserHandler, AddUserRole, AddUserRoleHandler
+from src.application.user.dto import UserDto
+from src.application.user.event.user_created_handler import UserCreatedHandler
+from src.application.user.interfaces.user_repo import UserRepo
+from src.application.user.utils import PasswordEncryptor
+from src.domain.book.entity import Book, Page
+from src.domain.user.entity.user import User
+from src.domain.user.event.user_created import UserCreated
+from src.infrastructure.db.base import async_session_factory
 from src.infrastructure.db.models.book import BookModel
 from src.infrastructure.db.models.user import UserModel
 from src.infrastructure.db.repository.book_repo_impl import BookRepoImpl
+from src.infrastructure.db.repository.user_repo_impl import UserRepoImpl
+from src.infrastructure.db.uof import SQLAlchemyUoW
 from src.infrastructure.mapper.book_db_model_mapper import BookDbModelMapper
 from src.infrastructure.mapper.book_mapper import BookMapper
 from src.infrastructure.mapper.page_mapper import PageMapper
-from src.application.common.interfaces.uow import UnitOfWork
-from src.application.user.interfaces.user_repo import UserRepo
-from src.infrastructure.db.repository.user_repo_impl import UserRepoImpl
-from src.application.common.interfaces.mapper import DomainMapper
-from src.domain.user.entity.user import User
-from src.domain.book.entity import Book, Page
-from src.application.user.dto import UserDto
-from src.application.book.dto import BookDto, PageDto
-from src.application.user.utils import PasswordEncryptor
-from src.application.user.command import CreateUserHandler, AddUserRoleHandler
 from src.infrastructure.mapper.user_db_model_mapper import UserDbModelMapper
 from src.infrastructure.mapper.user_mapper import UserMapper
-from src.infrastructure.db.base import async_session_factory
-from src.infrastructure.db.uof import SQLAlchemyUoW
+from src.application.common.interfaces.db_model_mapper import DbModelMapper
+from src.infrastructure.message_broker.interface import BaseMessageBroker
+from src.infrastructure.message_broker.message_broker_impl import MessageBrokerImpl
 
 
 class AppContainer(Provider):
@@ -57,9 +72,40 @@ class AppContainer(Provider):
         uof: UnitOfWork,
         mapper: DomainMapper[User, UserDto],
         password_encryptor: PasswordEncryptor,
-        # mediator: Mediator,
+        mediator: Mediator,
     ) -> CreateUserHandler:
-        return CreateUserHandler(user_repo, uof, mapper, password_encryptor)
+        return CreateUserHandler(user_repo, uof, mapper, password_encryptor, mediator)
+    
+    @provide(scope=Scope.REQUEST)
+    def provide_mediator(self, ioc: DishkaIoc) -> Mediator:
+        mediator = MediatorImpl(ioc=ioc, middlewares=[])
+
+        # Register all handlers
+        mediator.register_request_handler(CreateUser, CreateUserHandler)
+        mediator.register_request_handler(CreateBook, CreateBookHandler)
+        mediator.register_request_handler(AddBookPage, AddBookPageHandler)
+        mediator.register_request_handler(AddUserRole, AddUserRoleHandler)
+        mediator.register_request_handler(ChangeBookStatus, ChangeBookStatusHandler)
+        mediator.register_request_handler(AddBookAuthor, AddBookAuthorHandler)
+        mediator.register_request_handler(AddBookRedactor, AddBookRedactorHandler)
+        mediator.register_request_handler(
+            GetAllBooksByAuthorId, GetAllBooksByAuthorIdHandler
+        )
+        mediator.register_event_handler(UserCreated, UserCreatedHandler)
+
+        return mediator
+    
+    @provide(scope=Scope.REQUEST)
+    def provide_user_created_handler(self, message_broker: BaseMessageBroker) -> UserCreatedHandler:
+        return UserCreatedHandler("my_topic", message_broker)
+    
+    @provide(scope=Scope.APP)
+    def provide_message_broker(self, producer: AIOKafkaProducer, consumer: AIOKafkaConsumer) -> BaseMessageBroker:
+        return MessageBrokerImpl(producer, consumer)
+
+    @provide(scope=Scope.APP)
+    def provide_ioc(self, container: AsyncContainer) -> DishkaIoc:
+        return DishkaIoc(container)
 
     @provide(scope=Scope.REQUEST)
     def provide_user_mapper(self) -> DomainMapper[User, UserDto]:
@@ -123,8 +169,8 @@ class AppContainer(Provider):
         return AddBookPageHandler(book_repo, uof, mapper)
 
     @provide(scope=Scope.APP)
-    def provide_redis(self) -> redis.asyncio.Redis:
-        return redis.asyncio.Redis(host='redis', port=6379, db=0, decode_responses=True)
+    def provide_redis(self) -> redis.asyncio.Redis: # type: ignore
+        return redis.asyncio.Redis(host='redis', port=6379, db=0, decode_responses=True) # type: ignore
 
     @provide(scope=Scope.REQUEST)
     def provide_get_all_books_by_author_id_handler(
@@ -171,6 +217,23 @@ class AppContainer(Provider):
         uof: UnitOfWork,
     ) -> AddBookRedactorHandler:
         return AddBookRedactorHandler(book_repo, user_repo, book_mapper, user_mapper, uof)
+
+    @provide(scope=Scope.APP)
+    def get_io_kafka_producer(self) -> AIOKafkaProducer:
+        return AIOKafkaProducer(bootstrap_servers="kafka:9092", enable_idempotence=True)
+
+    @provide(scope=Scope.APP)
+    def get_io_kafka_consumer(self) -> AIOKafkaConsumer:
+        return AIOKafkaConsumer(
+            "my_topic",
+            bootstrap_servers="kafka:9092",
+            group_id="my-group",
+            auto_offset_reset="earliest",  # Changed to earliest to capture all messages
+            enable_auto_commit=True,
+            auto_commit_interval_ms=1000,
+            session_timeout_ms=30000,
+            heartbeat_interval_ms=10000,
+        )
 
 
 container = make_async_container(AppContainer())
